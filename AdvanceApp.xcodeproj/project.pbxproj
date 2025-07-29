@@ -14,7 +14,7 @@
 		E8FB51A92E336EDF0045A197 /* Exceptions for "AdvanceApp" folder in "AdvanceApp" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Info.plist,
+				Resources/Info.plist,
 			);
 			target = E8FB517D2E336EDE0045A197 /* AdvanceApp */;
 		};
