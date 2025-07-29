@@ -7,9 +7,14 @@
 
 import UIKit
 
-class ViewController: UIViewController {
+class BookListViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         print("viewDidLoad")
     }
+}
+
+@available(iOS 17.0, *)
+#Preview {
+    BookListViewController()
 }
