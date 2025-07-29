@@ -14,7 +14,7 @@ class MainTabBarController: UITabBarController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        tabBar.tintColor = .systemBlue // 탭바 아이템 선택 색상 설정
+        tabBar.tintColor = UIColor(named: "mainColor") // 탭바 아이템 선택 색상 설정
         setupViewControllers() // 뷰 컨트롤러 설정
     }
 
