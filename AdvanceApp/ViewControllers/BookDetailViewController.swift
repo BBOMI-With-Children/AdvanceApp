@@ -1,16 +1,16 @@
 //
-//  SearchViewController.swift
+//  BookDetailViewController.swift
 //  AdvanceApp
 //
-//  Created by 노가현 on 7/29/25.
+//  Created by 노가현 on 7/30/25.
 //
 
 import UIKit
 
-class SearchViewController: UIViewController {
+class BookDetailViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
-        title = "검색"
+        title = "상세페이지"
     }
 }
