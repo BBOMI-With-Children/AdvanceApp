@@ -22,16 +22,6 @@ class MainTabBarController: UITabBarController {
 
     // 탭바에 표시할 네비게이션 컨트롤러들 초기화
     private func setupViewControllers() {
-        // 홈 탭
-        let homeVC = BookListViewController()
-        let homeNav = UINavigationController(rootViewController: homeVC)
-        homeNav.tabBarItem = UITabBarItem(
-            title: "홈",
-            image: UIImage(systemName: "house"),
-            selectedImage: UIImage(systemName: "house.fill")
-        )
-        homeNav.isNavigationBarHidden = true // 홈 화면에서는 네비게이션 바 숨김
-
         // 검색 탭
         let searchVC = SearchViewController()
         searchVC.title = "검색"
@@ -54,7 +44,7 @@ class MainTabBarController: UITabBarController {
         myPageNav.isNavigationBarHidden = false // 마이페이지 화면에서는 네비게이션 바 표시
 
         // 탭바에 뷰 컨트롤러들 추가
-        viewControllers = [homeNav, searchNav, myPageNav]
+        viewControllers = [searchNav, myPageNav]
     }
 }
 

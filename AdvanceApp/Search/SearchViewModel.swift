@@ -1,15 +1,15 @@
 //
-//  BookList.swift
+//  SearchViewModel.swift
 //  AdvanceApp
 //
-//  Created by 노가현 on 7/29/25.
+//  Created by 노가현 on 7/30/25.
 //
 
 import Foundation
 import RxCocoa
 import RxSwift
 
-final class BookListViewModel {
+final class SearchViewModel {
     let bannerData = BehaviorRelay<[BannerViewData]>(value: [])
 
     func loadBanner() {
