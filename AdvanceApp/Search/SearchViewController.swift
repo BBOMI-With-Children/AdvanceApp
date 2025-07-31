@@ -22,6 +22,14 @@ struct BookItem {
 }
 
 class SearchViewController: UIViewController {
+    private let searchBar = UISearchBar().then {
+        $0.placeholder = "검색어를 입력하세요"
+        $0.searchBarStyle = .minimal
+        $0.showsCancelButton = false
+        $0.returnKeyType = .search
+        $0.searchTextField.clearButtonMode = .whileEditing
+    }
+
     private let scrollView = UIScrollView().then {
         $0.isPagingEnabled = true
         $0.showsHorizontalScrollIndicator = false
@@ -67,9 +75,15 @@ class SearchViewController: UIViewController {
     }
 
     private func setupLayout() {
+        view.addSubview(searchBar)
+        searchBar.snp.makeConstraints {
+            $0.top.equalTo(view.safeAreaLayoutGuide).offset(8)
+            $0.leading.trailing.equalToSuperview().inset(16)
+        }
+
         view.addSubview(scrollView)
         scrollView.snp.makeConstraints {
-            $0.top.equalTo(view.safeAreaLayoutGuide).offset(20)
+            $0.top.equalTo(searchBar.snp.bottom).offset(12)
             $0.leading.trailing.equalToSuperview()
             $0.height.equalTo(160)
         }
