@@ -81,7 +81,7 @@ final class SearchViewController: UIViewController {
 
         searchBar.snp.makeConstraints { make in
             make.top.equalTo(view.safeAreaLayoutGuide)
-            make.leading.trailing.equalToSuperview()
+            make.leading.trailing.equalToSuperview().inset(20)
         }
         scrollView.snp.makeConstraints {
             $0.top.equalTo(searchBar.snp.bottom).offset(8)
@@ -117,9 +117,8 @@ final class SearchViewController: UIViewController {
                     banner.configure(with: data)
                     container.addSubview(banner)
                     banner.snp.makeConstraints {
-                        $0.center.equalToSuperview()
-                        $0.width.equalTo(self.view.bounds.width - 40)
-                        $0.height.equalToSuperview()
+                        $0.top.bottom.equalToSuperview()
+                        $0.leading.trailing.equalToSuperview().inset(20)
                     }
                 }
             })
