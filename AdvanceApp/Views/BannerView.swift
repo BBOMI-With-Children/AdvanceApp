@@ -9,13 +9,6 @@ import SnapKit
 import Then
 import UIKit
 
-struct BannerViewData {
-    let explain: String
-    let title: String
-    let imageName: String
-    let backgroundColor: UIColor
-}
-
 final class BannerView: UIView {
     private let containerView = UIView().then {
         $0.layer.cornerRadius = 12
@@ -39,16 +32,12 @@ final class BannerView: UIView {
         $0.layer.cornerRadius = 4
     }
 
-    // MARK: - Init
-
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupUI()
     }
 
     @available(*, unavailable) required init?(coder: NSCoder) { fatalError() }
-
-    // MARK: - Layout
 
     private func setupUI() {
         addSubview(containerView)
@@ -77,8 +66,6 @@ final class BannerView: UIView {
             $0.centerY.equalToSuperview()
         }
     }
-
-    // MARK: - Configure
 
     func configure(with data: BannerViewData) {
         containerView.backgroundColor = data.backgroundColor
