@@ -1,19 +1,20 @@
 //
-//  SearchViewModel.swift
+//  BannerViewModel.swift
 //  AdvanceApp
 //
-//  Created by 노가현 on 7/30/25.
+//  Created by 노가현 on 7/31/25.
 //
 
 import Foundation
 import RxCocoa
 import RxSwift
+import UIKit
 
-final class SearchViewModel {
+final class BannerViewModel {
     let bannerData = BehaviorRelay<[BannerViewData]>(value: [])
 
     func loadBanner() {
-        let items = [
+        let items: [BannerViewData] = [
             BannerViewData(
                 explain: "김초엽이 그리는\n디스토피아 속 희망",
                 title: "지구 끝의 온실",

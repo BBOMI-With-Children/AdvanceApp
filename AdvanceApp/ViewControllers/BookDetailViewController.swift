@@ -5,23 +5,26 @@
 //  Created by 노가현 on 7/30/25.
 //
 
-import UIKit
 import SnapKit
 import Then
+import UIKit
 
 final class BookDetailViewController: UIViewController {
     private let titleLabel = UILabel().then {
         $0.font = .boldSystemFont(ofSize: 24)
         $0.numberOfLines = 0
     }
+
     private let authorLabel = UILabel().then {
         $0.font = .systemFont(ofSize: 16)
         $0.textColor = .secondaryLabel
     }
+
     private let descriptionLabel = UILabel().then {
         $0.font = .systemFont(ofSize: 14)
         $0.numberOfLines = 0
     }
+
     private let priceLabel = UILabel().then {
         $0.font = .systemFont(ofSize: 18, weight: .semibold)
         $0.textColor = .systemBlue
@@ -34,8 +37,8 @@ final class BookDetailViewController: UIViewController {
     }
 
     private func setupLayout() {
-        [titleLabel, authorLabel, descriptionLabel, priceLabel].forEach {
-            view.addSubview($0)
+        for item in [titleLabel, authorLabel, descriptionLabel, priceLabel] {
+            view.addSubview(item)
         }
         titleLabel.snp.makeConstraints { make in
             make.top.equalTo(view.safeAreaLayoutGuide).offset(20)
@@ -58,7 +61,8 @@ final class BookDetailViewController: UIViewController {
     func configure(title: String,
                    author: String,
                    description: String,
-                   salePrice: String) {
+                   salePrice: String)
+    {
         titleLabel.text = title
         authorLabel.text = author
         descriptionLabel.text = description

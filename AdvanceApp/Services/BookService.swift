@@ -1,0 +1,45 @@
+//
+//  BookService.swift
+//  AdvanceApp
+//
+//  Created by 노가현 on 7/31/25.
+//
+
+import Alamofire
+import Foundation
+import RxSwift
+
+protocol BookServicing {
+    func searchBooks(query: String) -> Observable<[BookItem]>
+}
+
+final class BookService: BookServicing {
+    static let shared = BookService()
+    private init() {}
+
+    private let apiKey = "536e08fd6cae2a372119d07eb9bee824"
+    private let baseURL = "https://dapi.kakao.com/v3/search/book"
+
+    func searchBooks(query: String) -> Observable<[BookItem]> {
+        return Observable.create { observer in
+            let headers: HTTPHeaders = ["Authorization": "KakaoAK \(self.apiKey)"]
+            let request = AF.request(
+                self.baseURL,
+                parameters: ["query": query],
+                headers: headers
+            )
+            .validate()
+            .responseDecodable(of: BookSearchResponse.self) { resp in
+                switch resp.result {
+                case .success(let data):
+                    let items = data.documents.map(BookItem.init)
+                    observer.onNext(items)
+                case .failure(let err):
+                    observer.onError(err)
+                }
+                observer.onCompleted()
+            }
+            return Disposables.create { request.cancel() }
+        }
+    }
+}

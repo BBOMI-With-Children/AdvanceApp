@@ -5,32 +5,11 @@
 //  Created by 노가현 on 7/29/25.
 //
 
-import Alamofire
-import Kingfisher
 import RxCocoa
 import RxSwift
 import SnapKit
 import Then
 import UIKit
-
-private struct BookSearchResponse: Codable {
-    let documents: [Document]
-    struct Document: Codable {
-        let title: String
-        let authors: [String]
-        let contents: String
-        let sale_price: Int
-        let thumbnail: String
-    }
-}
-
-struct BookItem {
-    let imageURL: URL?
-    let title: String
-    let author: String
-    let description: String
-    let priceText: String
-}
 
 final class SearchViewController: UIViewController {
     private let searchBar = UISearchBar().then {
@@ -39,12 +18,12 @@ final class SearchViewController: UIViewController {
         $0.returnKeyType = .search
     }
 
-    private let scrollView = UIScrollView().then {
+    private let bannerScrollView = UIScrollView().then {
         $0.isPagingEnabled = true
         $0.showsHorizontalScrollIndicator = false
     }
 
-    private let stackView = UIStackView().then {
+    private let bannerStackView = UIStackView().then {
         $0.axis = .horizontal
         $0.spacing = 16
     }
@@ -57,9 +36,8 @@ final class SearchViewController: UIViewController {
     }
 
     private let disposeBag = DisposeBag()
-    private let apiKey = "536e08fd6cae2a372119d07eb9bee824"
-    private let books = BehaviorRelay<[BookItem]>(value: [])
     private let viewModel = SearchViewModel()
+    private let bannerViewModel = BannerViewModel()
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -68,110 +46,79 @@ final class SearchViewController: UIViewController {
 
         setupLayout()
         bindBanner()
-        bindSearch()
-        bindTable()
+        bindViewModel()
 
-        viewModel.loadBanner()
+        bannerViewModel.loadBanner()
     }
 
     private func setupLayout() {
-        view.addSubview(searchBar)
-        view.addSubview(scrollView)
-        view.addSubview(tableView)
+        [searchBar, bannerScrollView, tableView].forEach { view.addSubview($0) }
+        bannerScrollView.addSubview(bannerStackView)
 
-        searchBar.snp.makeConstraints { make in
-            make.top.equalTo(view.safeAreaLayoutGuide)
-            make.leading.trailing.equalToSuperview().inset(20)
+        searchBar.snp.makeConstraints {
+            $0.top.equalTo(view.safeAreaLayoutGuide)
+            $0.leading.trailing.equalToSuperview().inset(20)
         }
-        scrollView.snp.makeConstraints {
+        bannerScrollView.snp.makeConstraints {
             $0.top.equalTo(searchBar.snp.bottom).offset(8)
             $0.leading.trailing.equalToSuperview()
             $0.height.equalTo(160)
         }
-        scrollView.addSubview(stackView)
-        stackView.snp.makeConstraints {
-            $0.edges.equalTo(scrollView.contentLayoutGuide)
-            $0.height.equalTo(scrollView.frameLayoutGuide)
+        bannerStackView.snp.makeConstraints {
+            $0.edges.equalTo(bannerScrollView.contentLayoutGuide)
+            $0.height.equalTo(bannerScrollView.frameLayoutGuide)
         }
-        tableView.snp.makeConstraints { make in
-            make.top.equalTo(scrollView.snp.bottom).offset(16)
-            make.leading.trailing.bottom.equalTo(view.safeAreaLayoutGuide)
+        tableView.snp.makeConstraints {
+            $0.top.equalTo(bannerScrollView.snp.bottom).offset(16)
+            $0.leading.trailing.bottom.equalTo(view.safeAreaLayoutGuide)
         }
     }
 
     private func bindBanner() {
         view.layoutIfNeeded()
-        viewModel.bannerData
+        bannerViewModel.bannerData
             .observe(on: MainScheduler.instance)
             .bind(onNext: { [weak self] items in
                 guard let self = self else { return }
-                self.stackView.arrangedSubviews.forEach { $0.removeFromSuperview() }
+                self.bannerStackView.arrangedSubviews.forEach { $0.removeFromSuperview() }
                 for data in items {
                     let container = UIView()
-                    self.stackView.addArrangedSubview(container)
+                    self.bannerStackView.addArrangedSubview(container)
                     container.snp.makeConstraints {
-                        $0.width.equalTo(self.scrollView.frameLayoutGuide)
-                        $0.height.equalTo(self.scrollView.frameLayoutGuide)
+                        $0.width.equalTo(self.bannerScrollView.frameLayoutGuide)
+                        $0.height.equalTo(self.bannerScrollView.frameLayoutGuide)
                     }
                     let banner = BannerView()
                     banner.configure(with: data)
                     container.addSubview(banner)
                     banner.snp.makeConstraints {
-                        $0.top.bottom.equalToSuperview()
-                        $0.leading.trailing.equalToSuperview().inset(20)
+                        $0.center.equalToSuperview()
+                        $0.width.equalTo(self.view.bounds.width - 40)
+                        $0.height.equalToSuperview()
                     }
                 }
             })
             .disposed(by: disposeBag)
     }
 
-    private func bindSearch() {
-        searchBar.rx.text.orEmpty
-            .debounce(.milliseconds(300), scheduler: MainScheduler.instance)
-            .distinctUntilChanged()
-            .filter { !$0.isEmpty }
-            .subscribe(onNext: { [unowned self] text in
-                let headers: HTTPHeaders = [
-                    "Authorization": "KakaoAK \(apiKey)"
-                ]
-                AF.request(
-                    "https://dapi.kakao.com/v3/search/book",
-                    parameters: ["query": text],
-                    headers: headers
-                )
-                .validate()
-                .responseDecodable(of: BookSearchResponse.self) { response in
-                    switch response.result {
-                    case .success(let resp):
-                        let items = resp.documents.map {
-                            BookItem(
-                                imageURL: URL(string: $0.thumbnail),
-                                title: $0.title,
-                                author: $0.authors.joined(separator: ", "),
-                                description: $0.contents,
-                                priceText: "\($0.sale_price)원"
-                            )
-                        }
-                        self.books.accept(items)
+    private func bindViewModel() {
+        let input = SearchInput(
+            queryText: searchBar.rx.text.orEmpty.asObservable()
+        )
+        let output = viewModel.transform(input)
 
-                    case .failure(let error):
-                        print("Alamofire Error:", error)
-                        self.books.accept([])
-                    }
-                }
-            })
-            .disposed(by: disposeBag)
-    }
-
-    private func bindTable() {
-        books
-            .bind(to: tableView.rx.items(cellIdentifier: BookCell.identifier, cellType: BookCell.self)) { _, item, cell in
+        output.books
+            .drive(tableView.rx.items(
+                cellIdentifier: BookCell.identifier,
+                cellType: BookCell.self
+            )) { (_: Int, item: BookItem, cell: BookCell) in
                 cell.configure(with: item)
             }
             .disposed(by: disposeBag)
 
-        tableView.rx.modelSelected(BookItem.self)
-            .subscribe(onNext: { [weak self] item in
+        tableView.rx
+            .modelSelected(BookItem.self)
+            .subscribe(onNext: { [weak self] (item: BookItem) in
                 let detailVC = BookDetailViewController()
                 detailVC.configure(
                     title: item.title,
@@ -184,83 +131,6 @@ final class SearchViewController: UIViewController {
                 self?.present(nav, animated: true)
             })
             .disposed(by: disposeBag)
-    }
-}
-
-private class BookCell: UITableViewCell {
-    static let identifier = "BookCell"
-
-    private let thumb = UIImageView().then {
-        $0.contentMode = .scaleAspectFill
-        $0.clipsToBounds = true
-        $0.layer.cornerRadius = 4
-        $0.backgroundColor = .secondarySystemFill
-    }
-
-    private let titleLabel = UILabel().then {
-        $0.font = .systemFont(ofSize: 16, weight: .semibold)
-        $0.numberOfLines = 2
-    }
-
-    private let authorLabel = UILabel().then {
-        $0.font = .systemFont(ofSize: 14)
-        $0.textColor = .secondaryLabel
-    }
-
-    private let descLabel = UILabel().then {
-        $0.font = .systemFont(ofSize: 12)
-        $0.textColor = .secondaryLabel
-        $0.numberOfLines = 2
-    }
-
-    private let priceLabel = UILabel().then {
-        $0.font = .systemFont(ofSize: 14, weight: .bold)
-        $0.textAlignment = .right
-    }
-
-    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
-        super.init(style: style, reuseIdentifier: reuseIdentifier)
-        for item in [thumb, titleLabel, authorLabel, descLabel, priceLabel] {
-            contentView.addSubview(item)
-        }
-        thumb.snp.makeConstraints {
-            $0.leading.top.bottom.equalToSuperview().inset(12)
-            $0.width.equalTo(60)
-            $0.height.equalTo(90)
-        }
-        priceLabel.snp.makeConstraints {
-            $0.trailing.equalToSuperview().inset(16)
-            $0.bottom.equalTo(thumb)
-            $0.width.lessThanOrEqualTo(80)
-        }
-        titleLabel.snp.makeConstraints {
-            $0.top.equalTo(thumb)
-            $0.leading.equalTo(thumb.snp.trailing).offset(12)
-            $0.trailing.equalTo(priceLabel.snp.leading).offset(-8)
-        }
-        authorLabel.snp.makeConstraints {
-            $0.top.equalTo(titleLabel.snp.bottom).offset(4)
-            $0.leading.trailing.equalTo(titleLabel)
-        }
-        descLabel.snp.makeConstraints {
-            $0.top.equalTo(authorLabel.snp.bottom).offset(4)
-            $0.leading.trailing.equalTo(titleLabel)
-        }
-    }
-
-    @available(*, unavailable)
-    required init?(coder: NSCoder) { fatalError("init(coder:) 미지원") }
-
-    func configure(with item: BookItem) {
-        if let url = item.imageURL {
-            thumb.kf.setImage(with: url, placeholder: UIImage(systemName: "book"))
-        } else {
-            thumb.image = UIImage(systemName: "book")
-        }
-        titleLabel.text = item.title
-        authorLabel.text = item.author
-        descLabel.text = item.description
-        priceLabel.text = item.priceText
     }
 }
 
