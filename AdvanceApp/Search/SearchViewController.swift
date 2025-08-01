@@ -124,7 +124,8 @@ final class SearchViewController: UIViewController {
                     title: item.title,
                     author: item.author,
                     description: item.description,
-                    salePrice: item.priceText
+                    salePrice: item.priceText,
+                    imageURL: item.imageURL
                 )
                 let nav = UINavigationController(rootViewController: detailVC)
                 nav.modalPresentationStyle = .automatic
