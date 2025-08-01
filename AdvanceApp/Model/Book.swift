@@ -28,9 +28,9 @@ struct BookItem {
     let priceText: String
 
     init(document: BookSearchResponse.Document) {
-        self.imageURL   = URL(string: document.thumbnail)
-        self.title      = document.title
-        self.author     = document.authors.joined(separator: ", ")
+        self.imageURL = URL(string: document.thumbnail)
+        self.title = document.title
+        self.author = document.authors.joined(separator: ", ")
         self.description = document.contents
 
         self.price = "\(document.price)원"
