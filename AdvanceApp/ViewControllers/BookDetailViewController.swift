@@ -35,7 +35,8 @@ final class BookDetailViewController: UIViewController {
 
     private let priceLabel = UILabel().then {
         $0.font = .systemFont(ofSize: 18, weight: .semibold)
-        $0.textColor = .systemBlue
+        $0.textColor = .label
+        $0.textAlignment = .right
     }
 
     private let infoStack = UIStackView().then {
