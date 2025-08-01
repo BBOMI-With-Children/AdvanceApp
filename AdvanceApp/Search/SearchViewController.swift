@@ -38,6 +38,10 @@ final class SearchViewController: UIViewController {
         $0.separatorStyle = .none
     }
 
+    func activateSearchBar() {
+        searchBar.becomeFirstResponder()
+    }
+
     private let disposeBag = DisposeBag()
     private let viewModel = SearchViewModel()
     private let bannerViewModel = BannerViewModel()
