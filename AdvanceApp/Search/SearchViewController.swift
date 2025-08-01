@@ -38,13 +38,17 @@ final class SearchViewController: UIViewController {
         $0.separatorStyle = .none
     }
 
+    func activateSearchBar() {
+        searchBar.becomeFirstResponder()
+    }
+
     private let disposeBag = DisposeBag()
     private let viewModel = SearchViewModel()
     private let bannerViewModel = BannerViewModel()
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        title = "검색"
+        navigationItem.title = ""
         view.backgroundColor = .systemBackground
 
         setupLayout()
@@ -63,7 +67,7 @@ final class SearchViewController: UIViewController {
 
         // 검색바 제약
         searchBar.snp.makeConstraints {
-            $0.top.equalTo(view.safeAreaLayoutGuide)
+            $0.top.equalTo(view.snp.top).offset((UIApplication.shared.windows.first?.safeAreaInsets.top ?? 0))
             $0.leading.trailing.equalToSuperview().inset(20)
         }
         // 배너 제약

@@ -34,12 +34,12 @@ class MainTabBarController: UITabBarController {
 
         // 마이페이지 탭
         let myPageVC = MyPageViewController()
-        myPageVC.title = "마이페이지"
+        myPageVC.title = "담은 책"
         let myPageNav = UINavigationController(rootViewController: myPageVC)
         myPageNav.tabBarItem = UITabBarItem(
-            title: "마이페이지",
-            image: UIImage(systemName: "person"),
-            selectedImage: UIImage(systemName: "person.fill")
+            title: "담은 책",
+            image: UIImage(systemName: "book"),
+            selectedImage: UIImage(systemName: "book.fill")
         )
         myPageNav.isNavigationBarHidden = false // 마이페이지 화면에서는 네비게이션 바 표시
 
