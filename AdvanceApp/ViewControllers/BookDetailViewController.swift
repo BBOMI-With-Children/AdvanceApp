@@ -53,6 +53,7 @@ final class BookDetailViewController: UIViewController {
     }
 
     // MARK: - Buttons
+
     private let closeButton = UIButton(type: .system).then {
         $0.setTitle("X", for: .normal)
         $0.setTitleColor(.white, for: .normal)
@@ -79,8 +80,8 @@ final class BookDetailViewController: UIViewController {
     private func setupLayout() {
         [thumbImageView, infoStack, bottomContainer].forEach { view.addSubview($0) }
 
-        [titleLabel, authorLabel, descriptionLabel, priceLabel].forEach {
-            infoStack.addArrangedSubview($0)
+        for item in [titleLabel, authorLabel, descriptionLabel, priceLabel] {
+            infoStack.addArrangedSubview(item)
         }
 
         [closeButton, saveButton].forEach { bottomContainer.addSubview($0) }
@@ -134,22 +135,24 @@ final class BookDetailViewController: UIViewController {
 
     @objc private func didTapSave() {
         print("담기 버튼 탭")
+        if let book = currentItem {
+            SavedBookManager.shared.save(book)
+        }
+        dismiss(animated: true)
     }
 
-    // 화면에 데이터 세팅
-    func configure(title: String,
-                   author: String,
-                   description: String,
-                   salePrice: String,
-                   imageURL: URL?)
-    {
-        titleLabel.text = title
-        authorLabel.text = author
-        descriptionLabel.text = description
-        priceLabel.text = salePrice
+    private var currentItem: BookItem?
 
-        if let imageURL = imageURL {
+    // 화면에 데이터 세팅
+    func configure(with item: BookItem) {
+        titleLabel.text = item.title
+        authorLabel.text = item.author
+        descriptionLabel.text = item.description
+        priceLabel.text = item.priceText
+
+        if let imageURL = item.imageURL {
             thumbImageView.kf.setImage(with: imageURL)
         }
+        currentItem = item
     }
 }

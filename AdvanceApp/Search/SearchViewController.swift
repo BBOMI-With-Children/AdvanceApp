@@ -55,6 +55,7 @@ final class SearchViewController: UIViewController {
     }
 
     // MARK: - Layout
+
     private func setupLayout() {
         // 서브뷰 추가
         [searchBar, bannerScrollView, tableView].forEach { view.addSubview($0) }
@@ -83,6 +84,7 @@ final class SearchViewController: UIViewController {
     }
 
     // MARK: - Banner Binding
+
     private func bindBanner() {
         view.layoutIfNeeded()
         bannerViewModel.bannerData
@@ -131,18 +133,13 @@ final class SearchViewController: UIViewController {
 
         tableView.rx
             .modelSelected(BookItem.self)
-            .subscribe(onNext: { [weak self] (item: BookItem) in
+            .subscribe(onNext: { [weak self] item in
+                guard let self = self else { return }
                 let detailVC = BookDetailViewController()
-                detailVC.configure(
-                    title: item.title,
-                    author: item.author,
-                    description: item.description,
-                    salePrice: item.priceText,
-                    imageURL: item.imageURL
-                )
+                detailVC.configure(with: item)
                 let nav = UINavigationController(rootViewController: detailVC)
                 nav.modalPresentationStyle = .automatic
-                self?.present(nav, animated: true)
+                self.present(nav, animated: true)
             })
             .disposed(by: disposeBag)
     }
