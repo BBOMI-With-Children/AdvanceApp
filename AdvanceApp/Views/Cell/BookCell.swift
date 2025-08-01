@@ -23,6 +23,7 @@ final class BookCell: UITableViewCell {
     private let titleLabel = UILabel().then {
         $0.font = .systemFont(ofSize: 16, weight: .semibold)
         $0.numberOfLines = 2
+        $0.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
     }
 
     private let authorLabel = UILabel().then {
@@ -34,11 +35,16 @@ final class BookCell: UITableViewCell {
         $0.font = .systemFont(ofSize: 12)
         $0.textColor = .secondaryLabel
         $0.numberOfLines = 2
+        $0.lineBreakMode = .byTruncatingTail
     }
 
     private let priceLabel = UILabel().then {
         $0.font = .systemFont(ofSize: 14, weight: .bold)
         $0.textAlignment = .right
+
+        $0.setContentHuggingPriority(.required, for: .horizontal)
+        $0.setContentCompressionResistancePriority(.required, for: .horizontal)
+        $0.setContentCompressionResistancePriority(.required, for: .vertical)
     }
 
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
@@ -54,7 +60,6 @@ final class BookCell: UITableViewCell {
         priceLabel.snp.makeConstraints {
             $0.trailing.equalToSuperview().inset(16)
             $0.bottom.equalTo(thumb)
-            $0.width.lessThanOrEqualTo(80)
         }
         titleLabel.snp.makeConstraints {
             $0.top.equalTo(thumb)
@@ -69,6 +74,10 @@ final class BookCell: UITableViewCell {
             $0.top.equalTo(authorLabel.snp.bottom).offset(4)
             $0.leading.trailing.equalTo(titleLabel)
         }
+
+        descLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+        descLabel.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        priceLabel.setContentCompressionResistancePriority(.required, for: .vertical)
     }
 
     @available(*, unavailable)
