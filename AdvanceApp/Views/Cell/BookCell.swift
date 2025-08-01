@@ -83,6 +83,12 @@ final class BookCell: UITableViewCell {
         titleLabel.text = item.title
         authorLabel.text = item.author
         descLabel.text = item.description
-        priceLabel.text = item.priceText
+
+        let sale = item.priceText
+        if sale == "-1원" || sale == "0원" {
+            priceLabel.text = item.price
+        } else {
+            priceLabel.text = sale
+        }
     }
 }
