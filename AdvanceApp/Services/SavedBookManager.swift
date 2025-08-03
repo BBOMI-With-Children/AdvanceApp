@@ -34,8 +34,10 @@ final class SavedBookManager {
             book.title, book.author
         )
 
-        if (try? context.count(for: fetchReq)) ?? 0 > 0 {
-            return // 이미 저장된 책이면 패스
+        if let existing = (try? context.fetch(fetchReq))?.first {
+            existing.createdAt = Date()
+            try? context.save()
+            return
         }
 
         let entity = BookEntity(context: context)
