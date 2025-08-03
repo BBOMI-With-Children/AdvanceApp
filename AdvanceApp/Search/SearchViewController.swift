@@ -254,6 +254,16 @@ final class SearchViewController: UIViewController {
             .modelSelected(BookItem.self)
             .subscribe(onNext: { [weak self] item in
                 guard let self = self else { return }
+
+                // 1) CoreData에 저장
+                SavedBookManager.shared.save(item)
+
+                // 2) 클릭된 항목을 맨 앞에
+                var recents = self.recentBooksRelay.value
+                recents.insert(item, at: 0)
+                self.recentBooksRelay.accept(recents)
+
+                // 3) 상세화면으로 이동
                 let detailVC = BookDetailViewController()
                 detailVC.configure(with: item)
                 let nav = UINavigationController(rootViewController: detailVC)
