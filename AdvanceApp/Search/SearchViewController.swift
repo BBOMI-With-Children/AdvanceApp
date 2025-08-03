@@ -41,6 +41,22 @@ final class SearchViewController: UIViewController {
         $0.spacing = 16
     }
 
+    private let recentBooksRelay = BehaviorRelay<[BookItem]>(value: [])
+    private let recentCollectionView: UICollectionView = {
+        let layout = UICollectionViewFlowLayout().then {
+            $0.scrollDirection = .horizontal
+            $0.itemSize = CGSize(width: 100, height: 150)
+            $0.minimumLineSpacing = 12
+        }
+        let cv = UICollectionView(frame: .zero, collectionViewLayout: layout).then {
+            $0.showsHorizontalScrollIndicator = false
+            $0.backgroundColor = .clear
+        }
+        cv.register(RecentBookCell.self,
+                    forCellWithReuseIdentifier: RecentBookCell.identifier)
+        return cv
+    }()
+
     // 검색 결과 리스트
     private let tableView = UITableView().then {
         $0.register(BookCell.self, forCellReuseIdentifier: BookCell.identifier)
@@ -112,6 +128,12 @@ final class SearchViewController: UIViewController {
         bannerStackView.snp.makeConstraints {
             $0.edges.equalTo(bannerScrollView.contentLayoutGuide)
             $0.height.equalTo(bannerScrollView.frameLayoutGuide)
+        }
+
+        recentCollectionView.snp.makeConstraints {
+            $0.top.equalTo(bannerScrollView.snp.bottom).offset(16)
+            $0.leading.trailing.equalToSuperview()
+            $0.height.equalTo(150)
         }
 
         tableView.snp.makeConstraints {
