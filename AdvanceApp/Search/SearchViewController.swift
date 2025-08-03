@@ -86,6 +86,8 @@ final class SearchViewController: UIViewController {
         navigationItem.title = ""
         view.backgroundColor = .systemBackground
 
+        recentCollectionView.contentInset = .init(top: 0, left: 20, bottom: 0, right: 20)
+
         setupLayout()
         bindBanner()
         bindRecent()
@@ -111,9 +113,8 @@ final class SearchViewController: UIViewController {
     // MARK: - Layout
 
     private func setupLayout() {
-        view.addSubview(tableView)
-        view.addSubview(bannerScrollView)
-        view.addSubview(searchBar)
+        [searchBar, bannerScrollView, recentCollectionView, tableView]
+            .forEach { view.addSubview($0) }
 
         bannerScrollView.addSubview(bannerStackView)
 
@@ -141,7 +142,7 @@ final class SearchViewController: UIViewController {
         }
 
         tableView.snp.makeConstraints {
-            $0.top.equalTo(bannerScrollView.snp.bottom).offset(16)
+            $0.top.equalTo(recentCollectionView.snp.bottom).offset(16)
             $0.leading.trailing.bottom.equalTo(view.safeAreaLayoutGuide)
         }
     }
