@@ -52,6 +52,16 @@ final class SavedBookManager {
         try? context.save()
     }
 
+    func isBookSaved(_ book: BookItem) -> Bool {
+        let fetchReq: NSFetchRequest<BookEntity> = BookEntity.fetchRequest()
+        fetchReq.predicate = NSPredicate(
+            format: "title == %@ AND author == %@",
+            book.title, book.author
+        )
+        let count = (try? context.count(for: fetchReq)) ?? 0
+        return count > 0
+    }
+
     // 저장된 책을 BookItem 배열로 반환
     func getAll() -> [BookItem] {
         let fetchReq: NSFetchRequest<BookEntity> = BookEntity.fetchRequest()
