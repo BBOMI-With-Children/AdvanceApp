@@ -26,6 +26,11 @@ final class SearchViewModel: SearchViewModeling {
     private let service: BookServicing
     private let disposeBag = DisposeBag()
 
+    private var currentPage = 1
+    private var isEnd = false
+    private var currentQuery = ""
+    private let items = BehaviorRelay<[BookItem]>(value: [])
+
     init(service: BookServicing = BookService.shared) {
         self.service = service
     }
