@@ -27,17 +27,32 @@ struct BookItem {
     let price: String
     let priceText: String
 
+    private static let priceFormatter: NumberFormatter = {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.groupingSeparator = ","
+        return formatter
+    }()
+
     init(document: BookSearchResponse.Document) {
         self.imageURL = URL(string: document.thumbnail)
         self.title = document.title
         self.author = document.authors.joined(separator: ", ")
         self.description = document.contents
 
-        self.price = "\(document.price)원"
+        // 원가 포맷팅
+        let formattedPrice = BookItem.priceFormatter
+            .string(from: NSNumber(value: document.price))
+            ?? "\(document.price)"
+        self.price = "\(formattedPrice)원"
 
-        let sale = document.sale_price > 0
+        // 판매가(할인가) 포맷팅: sale_price가 0 이하일 땐 원가 사용
+        let saleValue = document.sale_price > 0
             ? document.sale_price
             : document.price
-        self.priceText = "\(sale)원"
+        let formattedSale = BookItem.priceFormatter
+            .string(from: NSNumber(value: saleValue))
+            ?? "\(saleValue)"
+        self.priceText = "\(formattedSale)원"
     }
 }
