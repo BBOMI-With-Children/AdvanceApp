@@ -73,13 +73,19 @@ final class SearchViewController: UIViewController {
         setupLayout()
         bindBanner()
         bindViewModel()
-
         bannerViewModel.loadBanner()
     }
 
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-        // searchBar.becomeFirstResponder()
+    // 화면 보일 때 네비게이션 바 숨기기
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        navigationController?.setNavigationBarHidden(true, animated: false)
+    }
+
+    // 네비게이션 바 다시 보이기
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        navigationController?.setNavigationBarHidden(false, animated: false)
     }
 
     // MARK: - Layout
