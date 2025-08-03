@@ -93,10 +93,13 @@ final class SearchViewController: UIViewController {
         bannerViewModel.loadBanner()
     }
 
-    // 화면 보일 때 네비게이션 바 숨기기
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        // 네비게이션 바 숨기기
         navigationController?.setNavigationBarHidden(true, animated: false)
+        // CoreData에서 최근 본 책 불러오기
+        let recent = SavedBookManager.shared.getAll()
+        recentBooksRelay.accept(recent)
     }
 
     // 네비게이션 바 다시 보이기
