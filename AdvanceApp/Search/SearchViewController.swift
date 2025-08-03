@@ -88,6 +88,7 @@ final class SearchViewController: UIViewController {
 
         setupLayout()
         bindBanner()
+        bindRecent()
         bindViewModel()
         bannerViewModel.loadBanner()
     }
@@ -169,6 +170,31 @@ final class SearchViewController: UIViewController {
                         $0.height.equalToSuperview()
                     }
                 }
+            })
+            .disposed(by: disposeBag)
+    }
+
+    private func bindRecent() {
+        // 1) 데이터 → CollectionView
+        recentBooksRelay
+            .asDriver()
+            .drive(recentCollectionView.rx.items(
+                cellIdentifier: RecentBookCell.identifier,
+                cellType: RecentBookCell.self
+            )) { _, item, cell in
+                cell.configure(with: item)
+            }
+            .disposed(by: disposeBag)
+
+        // 2) 탭 → 상세화면
+        recentCollectionView.rx
+            .modelSelected(BookItem.self)
+            .subscribe(onNext: { [weak self] item in
+                let detailVC = BookDetailViewController()
+                detailVC.configure(with: item)
+                let nav = UINavigationController(rootViewController: detailVC)
+                nav.modalPresentationStyle = .automatic
+                self?.present(nav, animated: true)
             })
             .disposed(by: disposeBag)
     }
