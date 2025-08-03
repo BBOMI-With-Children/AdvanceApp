@@ -34,6 +34,7 @@ final class BannerViewModel {
                 backgroundColor: .systemBlue.withAlphaComponent(0.2)
             )
         ]
-        bannerData.accept(items)
+        // bannerData.accept(items)
+        bannerData.accept(Array(items.prefix(1)))
     }
 }
