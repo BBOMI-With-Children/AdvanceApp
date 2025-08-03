@@ -11,6 +11,7 @@ import RxSwift
 
 struct SearchInput {
     let queryText: Observable<String>
+    let loadNextPage: Observable<Void>
 }
 
 struct SearchOutput {
@@ -23,6 +24,7 @@ protocol SearchViewModeling {
 
 final class SearchViewModel: SearchViewModeling {
     private let service: BookServicing
+    private let disposeBag = DisposeBag()
 
     init(service: BookServicing = BookService.shared) {
         self.service = service
