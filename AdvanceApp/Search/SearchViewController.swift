@@ -6,10 +6,14 @@
 //
 
 import RxCocoa
+import RxDataSources
 import RxSwift
 import SnapKit
 import Then
 import UIKit
+
+// RxDataSources용 섹션 모델 타입
+private typealias BookSection = SectionModel<String, BookItem>
 
 final class SearchViewController: UIViewController {
     // 상단 검색바
@@ -17,6 +21,10 @@ final class SearchViewController: UIViewController {
         $0.placeholder = "책 제목 또는 저자를 입력하세요"
         $0.searchBarStyle = .minimal
         $0.returnKeyType = .search
+    }
+
+    func activateSearchBar() {
+        searchBar.becomeFirstResponder()
     }
 
     // 가로 스크롤용 배너 영역
@@ -38,13 +46,18 @@ final class SearchViewController: UIViewController {
         $0.separatorStyle = .none
     }
 
-    func activateSearchBar() {
-        searchBar.becomeFirstResponder()
-    }
-
     private let disposeBag = DisposeBag()
     private let viewModel = SearchViewModel()
     private let bannerViewModel = BannerViewModel()
+
+    // RxDataSources용 데이터소스
+    private lazy var dataSource = RxTableViewSectionedReloadDataSource<BookSection>(
+        configureCell: { _, tableView, indexPath, item in
+            let cell = tableView.dequeueReusableCell(withIdentifier: BookCell.identifier, for: indexPath) as! BookCell
+            cell.configure(with: item)
+            return cell
+        }
+    )
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -61,16 +74,13 @@ final class SearchViewController: UIViewController {
     // MARK: - Layout
 
     private func setupLayout() {
-        // 서브뷰 추가
         [searchBar, bannerScrollView, tableView].forEach { view.addSubview($0) }
         bannerScrollView.addSubview(bannerStackView)
 
-        // 검색바 제약
         searchBar.snp.makeConstraints {
-            $0.top.equalTo(view.snp.top).offset((UIApplication.shared.windows.first?.safeAreaInsets.top ?? 0))
+            $0.top.equalTo(view.snp.top).offset(UIApplication.shared.windows.first?.safeAreaInsets.top ?? 0)
             $0.leading.trailing.equalToSuperview().inset(20)
         }
-        // 배너 제약
         bannerScrollView.snp.makeConstraints {
             $0.top.equalTo(searchBar.snp.bottom).offset(8)
             $0.leading.trailing.equalToSuperview()
@@ -80,7 +90,6 @@ final class SearchViewController: UIViewController {
             $0.edges.equalTo(bannerScrollView.contentLayoutGuide)
             $0.height.equalTo(bannerScrollView.frameLayoutGuide)
         }
-        // 테이블뷰 제약
         tableView.snp.makeConstraints {
             $0.top.equalTo(bannerScrollView.snp.bottom).offset(16)
             $0.leading.trailing.bottom.equalTo(view.safeAreaLayoutGuide)
@@ -95,9 +104,7 @@ final class SearchViewController: UIViewController {
             .observe(on: MainScheduler.instance)
             .bind(onNext: { [weak self] items in
                 guard let self = self else { return }
-                // 이전 배너 제거
                 self.bannerStackView.arrangedSubviews.forEach { $0.removeFromSuperview() }
-                // 새 배너 추가
                 for data in items {
                     let container = UIView()
                     self.bannerStackView.addArrangedSubview(container)
@@ -118,21 +125,20 @@ final class SearchViewController: UIViewController {
             .disposed(by: disposeBag)
     }
 
+    // MARK: - ViewModel Binding
+
     private func bindViewModel() {
-        // 입력 : 검색바 텍스트
         let input = SearchInput(
             queryText: searchBar.rx.text.orEmpty.asObservable()
         )
         let output = viewModel.transform(input)
 
-        // 결과 : 테이블뷰에 표시
+        // RxDataSources로 테이블뷰 바인딩
         output.books
-            .drive(tableView.rx.items(
-                cellIdentifier: BookCell.identifier,
-                cellType: BookCell.self
-            )) { (_: Int, item: BookItem, cell: BookCell) in
-                cell.configure(with: item)
+            .map { books in
+                [BookSection(model: "검색 결과", items: books)]
             }
+            .drive(tableView.rx.items(dataSource: dataSource))
             .disposed(by: disposeBag)
 
         tableView.rx

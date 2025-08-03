@@ -10,6 +10,8 @@ import Then
 import UIKit
 
 final class MyPageViewController: UIViewController {
+    // MARK: - UI
+
     private let tableView = UITableView().then {
         $0.register(BookCell.self, forCellReuseIdentifier: BookCell.identifier)
         $0.rowHeight = UITableView.automaticDimension
@@ -25,8 +27,12 @@ final class MyPageViewController: UIViewController {
         $0.isHidden = true
     }
 
+    // MARK: - Properties
+
     private let disposeBag = DisposeBag()
     private let savedBooksRelay = BehaviorRelay<[BookItem]>(value: [])
+
+    // MARK: - Lifecycle
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -43,6 +49,8 @@ final class MyPageViewController: UIViewController {
         loadSavedBooks()
     }
 
+    // MARK: - Navigation Bar
+
     private func setupNavigationBar() {
         let deleteAllButton = UIBarButtonItem(title: "전체 삭제", style: .plain, target: nil, action: nil)
         let addButton = UIBarButtonItem(title: "추가", style: .plain, target: nil, action: nil)
@@ -53,6 +61,7 @@ final class MyPageViewController: UIViewController {
         deleteAllButton.rx.tap
             .subscribe(onNext: { [weak self] in
                 guard let self = self else { return }
+                // 전체 삭제
                 SavedBookManager.shared.deleteAll()
                 self.savedBooksRelay.accept([])
             })
@@ -63,21 +72,21 @@ final class MyPageViewController: UIViewController {
                 guard
                     let self = self,
                     let tabBar = self.tabBarController,
-                    // 0번 탭에 SearchViewController가 UINavigationController로 묶여 있다고 가정
                     let nav = tabBar.viewControllers?.first as? UINavigationController,
                     let searchVC = nav.viewControllers.first as? SearchViewController
                 else { return }
 
                 // 1) 탭 전환
                 tabBar.selectedIndex = 0
-
-                // 2) 검색바 포커스 (메인 스레드에서 살짝 지연)
+                // 2) 검색바 포커스
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                     searchVC.activateSearchBar()
                 }
             })
             .disposed(by: disposeBag)
     }
+
+    // MARK: - Layout
 
     private func setupLayout() {
         view.addSubview(tableView)
@@ -94,23 +103,24 @@ final class MyPageViewController: UIViewController {
     // MARK: - Binding
 
     private func bindViewModel() {
-        // 데이터 → 테이블
+        // 1) 데이터 → 테이블
         savedBooksRelay
             .asDriver()
-            .drive(tableView.rx.items(cellIdentifier: BookCell.identifier,
-                                      cellType: BookCell.self))
-            { _, book, cell in
+            .drive(tableView.rx.items(
+                cellIdentifier: BookCell.identifier,
+                cellType: BookCell.self
+            )) { _, book, cell in
                 cell.configure(with: book)
             }
             .disposed(by: disposeBag)
 
-        // 빈 상태 라벨 표시
+        // 2) 빈 상태 라벨 표시
         savedBooksRelay
             .map { !$0.isEmpty }
             .bind(to: emptyLabel.rx.isHidden)
             .disposed(by: disposeBag)
 
-        // 셀 선택 → 상세화면
+        // 3) 셀 선택 → 상세화면
         tableView.rx.modelSelected(BookItem.self)
             .subscribe(onNext: { [weak self] book in
                 let detailVC = BookDetailViewController()
