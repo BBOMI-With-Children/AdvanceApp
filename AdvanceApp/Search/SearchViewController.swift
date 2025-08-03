@@ -41,6 +41,12 @@ final class SearchViewController: UIViewController {
         $0.spacing = 16
     }
 
+    private let recentTitleLabel = UILabel().then {
+        $0.text = "📖 최근 본 책"
+        $0.font = .systemFont(ofSize: 18, weight: .bold)
+        $0.textColor = .label
+    }
+
     private let recentBooksRelay = BehaviorRelay<[BookItem]>(value: [])
     private let recentCollectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout().then {
@@ -113,7 +119,7 @@ final class SearchViewController: UIViewController {
     // MARK: - Layout
 
     private func setupLayout() {
-        [searchBar, bannerScrollView, recentCollectionView, tableView]
+        [searchBar, bannerScrollView, recentTitleLabel, recentCollectionView, tableView]
             .forEach { view.addSubview($0) }
 
         bannerScrollView.addSubview(bannerStackView)
@@ -135,8 +141,13 @@ final class SearchViewController: UIViewController {
             $0.height.equalTo(bannerScrollView.frameLayoutGuide)
         }
 
-        recentCollectionView.snp.makeConstraints {
+        recentTitleLabel.snp.makeConstraints {
             $0.top.equalTo(bannerScrollView.snp.bottom).offset(16)
+            $0.leading.equalToSuperview().inset(20)
+        }
+
+        recentCollectionView.snp.makeConstraints {
+            $0.top.equalTo(recentTitleLabel.snp.bottom).offset(12)
             $0.leading.trailing.equalToSuperview()
             $0.height.equalTo(150)
         }
