@@ -134,11 +134,22 @@ final class BookDetailViewController: UIViewController {
     }
 
     @objc private func didTapSave() {
-        print("담기 버튼 탭")
-        if let book = currentItem {
+        guard let book = currentItem else { return }
+
+        // 중복 저장 여부 확인
+        if SavedBookManager.shared.isBookSaved(book) {
+            let alert = UIAlertController(
+                title: "중복된 책",
+                message: "이미 담긴 책입니다.",
+                preferredStyle: .alert
+            )
+            alert.addAction(.init(title: "확인", style: .default))
+            present(alert, animated: true)
+        } else {
+            // 중복이 아닐 때
             SavedBookManager.shared.save(book)
+            dismiss(animated: true)
         }
-        dismiss(animated: true)
     }
 
     private var currentItem: BookItem?
