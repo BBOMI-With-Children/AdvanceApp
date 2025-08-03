@@ -41,6 +41,35 @@ final class SearchViewController: UIViewController {
         $0.spacing = 16
     }
 
+    private let recentTitleLabel = UILabel().then {
+        $0.text = "📖 최근 본 책"
+        $0.font = .systemFont(ofSize: 18, weight: .bold)
+        $0.textColor = .label
+    }
+
+    private let recentToggleButton = UIButton(type: .system).then {
+        $0.setTitle("접기", for: .normal)
+        $0.titleLabel?.font = .systemFont(ofSize: 14)
+    }
+
+    private var isRecentHidden = false
+
+    private let recentBooksRelay = BehaviorRelay<[BookItem]>(value: [])
+    private let recentCollectionView: UICollectionView = {
+        let layout = UICollectionViewFlowLayout().then {
+            $0.scrollDirection = .horizontal
+            $0.itemSize = CGSize(width: 100, height: 150)
+            $0.minimumLineSpacing = 12
+        }
+        let cv = UICollectionView(frame: .zero, collectionViewLayout: layout).then {
+            $0.showsHorizontalScrollIndicator = false
+            $0.backgroundColor = .clear
+        }
+        cv.register(RecentBookCell.self,
+                    forCellWithReuseIdentifier: RecentBookCell.identifier)
+        return cv
+    }()
+
     // 검색 결과 리스트
     private let tableView = UITableView().then {
         $0.register(BookCell.self, forCellReuseIdentifier: BookCell.identifier)
@@ -70,16 +99,30 @@ final class SearchViewController: UIViewController {
         navigationItem.title = ""
         view.backgroundColor = .systemBackground
 
+        recentCollectionView.contentInset = .init(top: 0, left: 20, bottom: 0, right: 20)
+
+        recentToggleButton.addTarget(self,
+                                     action: #selector(toggleRecentSection),
+                                     for: .touchUpInside)
+
         setupLayout()
+
+        view.bringSubviewToFront(recentTitleLabel)
+        view.bringSubviewToFront(recentToggleButton)
+
         bindBanner()
+        bindRecent()
         bindViewModel()
         bannerViewModel.loadBanner()
     }
 
-    // 화면 보일 때 네비게이션 바 숨기기
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        // 네비게이션 바 숨기기
         navigationController?.setNavigationBarHidden(true, animated: false)
+        // CoreData에서 최근 본 책 불러오기
+        let recent = SavedBookManager.shared.getAll()
+        recentBooksRelay.accept(recent)
     }
 
     // 네비게이션 바 다시 보이기
@@ -91,9 +134,8 @@ final class SearchViewController: UIViewController {
     // MARK: - Layout
 
     private func setupLayout() {
-        view.addSubview(tableView)
-        view.addSubview(bannerScrollView)
-        view.addSubview(searchBar)
+        [searchBar, bannerScrollView, recentTitleLabel, recentToggleButton, recentCollectionView, tableView]
+            .forEach { view.addSubview($0) }
 
         bannerScrollView.addSubview(bannerStackView)
 
@@ -114,8 +156,24 @@ final class SearchViewController: UIViewController {
             $0.height.equalTo(bannerScrollView.frameLayoutGuide)
         }
 
-        tableView.snp.makeConstraints {
+        recentTitleLabel.snp.makeConstraints {
             $0.top.equalTo(bannerScrollView.snp.bottom).offset(16)
+            $0.leading.equalToSuperview().inset(20)
+        }
+
+        recentToggleButton.snp.makeConstraints {
+            $0.centerY.equalTo(recentTitleLabel)
+            $0.trailing.equalToSuperview().inset(20)
+        }
+
+        recentCollectionView.snp.makeConstraints {
+            $0.top.equalTo(recentTitleLabel.snp.bottom).offset(12)
+            $0.leading.trailing.equalToSuperview()
+            $0.height.equalTo(150)
+        }
+
+        tableView.snp.makeConstraints {
+            $0.top.equalTo(recentCollectionView.snp.bottom).offset(16)
             $0.leading.trailing.bottom.equalTo(view.safeAreaLayoutGuide)
         }
     }
@@ -151,6 +209,31 @@ final class SearchViewController: UIViewController {
             .disposed(by: disposeBag)
     }
 
+    private func bindRecent() {
+        // 1) 데이터 → CollectionView
+        recentBooksRelay
+            .asDriver()
+            .drive(recentCollectionView.rx.items(
+                cellIdentifier: RecentBookCell.identifier,
+                cellType: RecentBookCell.self
+            )) { _, item, cell in
+                cell.configure(with: item)
+            }
+            .disposed(by: disposeBag)
+
+        // 2) 탭 → 상세화면
+        recentCollectionView.rx
+            .modelSelected(BookItem.self)
+            .subscribe(onNext: { [weak self] item in
+                let detailVC = BookDetailViewController()
+                detailVC.configure(with: item)
+                let nav = UINavigationController(rootViewController: detailVC)
+                nav.modalPresentationStyle = .automatic
+                self?.present(nav, animated: true)
+            })
+            .disposed(by: disposeBag)
+    }
+
     // MARK: - ViewModel Binding
 
     private func bindViewModel() {
@@ -178,6 +261,30 @@ final class SearchViewController: UIViewController {
                 self.present(nav, animated: true)
             })
             .disposed(by: disposeBag)
+    }
+
+    @objc private func toggleRecentSection() {
+        isRecentHidden.toggle()
+        // 버튼 타이틀 교체
+        let title = isRecentHidden ? "펼치기" : "접기"
+        recentToggleButton.setTitle(title, for: .normal)
+
+        // 컬렉션뷰 숨김
+        recentCollectionView.isHidden = isRecentHidden
+
+        // 테이블뷰 제약 재설정
+        tableView.snp.remakeConstraints {
+            let topAnchor = isRecentHidden
+                ? recentTitleLabel.snp.bottom
+                : recentCollectionView.snp.bottom
+            $0.top.equalTo(topAnchor).offset(16)
+            $0.leading.trailing.bottom.equalTo(view.safeAreaLayoutGuide)
+        }
+
+        // 애니메이션으로 레이아웃 반영
+        UIView.animate(withDuration: 0.25) {
+            self.view.layoutIfNeeded()
+        }
     }
 }
 
