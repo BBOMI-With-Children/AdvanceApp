@@ -260,6 +260,7 @@ final class SearchViewController: UIViewController {
 
                 // 2) 클릭된 항목을 맨 앞에
                 var recents = self.recentBooksRelay.value
+                recents.removeAll { $0.title == item.title }
                 recents.insert(item, at: 0)
                 self.recentBooksRelay.accept(recents)
 
