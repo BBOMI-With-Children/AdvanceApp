@@ -23,6 +23,9 @@ final class SearchViewController: UIViewController {
         $0.returnKeyType = .search
     }
 
+    // MARK: — 포커스용 공개 메서드
+
+    /// MyPage에서 검색바에 포커스 주기 용도
     func activateSearchBar() {
         searchBar.becomeFirstResponder()
     }
@@ -53,7 +56,10 @@ final class SearchViewController: UIViewController {
     // RxDataSources용 데이터소스
     private lazy var dataSource = RxTableViewSectionedReloadDataSource<BookSection>(
         configureCell: { _, tableView, indexPath, item in
-            let cell = tableView.dequeueReusableCell(withIdentifier: BookCell.identifier, for: indexPath) as! BookCell
+            let cell = tableView.dequeueReusableCell(
+                withIdentifier: BookCell.identifier,
+                for: indexPath
+            ) as! BookCell
             cell.configure(with: item)
             return cell
         }
@@ -71,25 +77,37 @@ final class SearchViewController: UIViewController {
         bannerViewModel.loadBanner()
     }
 
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        // searchBar.becomeFirstResponder()
+    }
+
     // MARK: - Layout
 
     private func setupLayout() {
-        [searchBar, bannerScrollView, tableView].forEach { view.addSubview($0) }
+        view.addSubview(tableView)
+        view.addSubview(bannerScrollView)
+        view.addSubview(searchBar)
+
         bannerScrollView.addSubview(bannerStackView)
 
         searchBar.snp.makeConstraints {
-            $0.top.equalTo(view.snp.top).offset(UIApplication.shared.windows.first?.safeAreaInsets.top ?? 0)
+            $0.top.equalTo(view.safeAreaLayoutGuide.snp.top)
             $0.leading.trailing.equalToSuperview().inset(20)
+            $0.height.equalTo(44)
         }
+
         bannerScrollView.snp.makeConstraints {
             $0.top.equalTo(searchBar.snp.bottom).offset(8)
             $0.leading.trailing.equalToSuperview()
             $0.height.equalTo(160)
         }
+
         bannerStackView.snp.makeConstraints {
             $0.edges.equalTo(bannerScrollView.contentLayoutGuide)
             $0.height.equalTo(bannerScrollView.frameLayoutGuide)
         }
+
         tableView.snp.makeConstraints {
             $0.top.equalTo(bannerScrollView.snp.bottom).offset(16)
             $0.leading.trailing.bottom.equalTo(view.safeAreaLayoutGuide)
@@ -105,6 +123,7 @@ final class SearchViewController: UIViewController {
             .bind(onNext: { [weak self] items in
                 guard let self = self else { return }
                 self.bannerStackView.arrangedSubviews.forEach { $0.removeFromSuperview() }
+
                 for data in items {
                     let container = UIView()
                     self.bannerStackView.addArrangedSubview(container)
@@ -112,6 +131,7 @@ final class SearchViewController: UIViewController {
                         $0.width.equalTo(self.bannerScrollView.frameLayoutGuide)
                         $0.height.equalTo(self.bannerScrollView.frameLayoutGuide)
                     }
+
                     let banner = BannerView()
                     banner.configure(with: data)
                     container.addSubview(banner)
