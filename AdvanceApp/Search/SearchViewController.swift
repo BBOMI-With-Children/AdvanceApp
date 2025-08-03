@@ -242,7 +242,9 @@ final class SearchViewController: UIViewController {
         let loadNextPage = tableView.rx.willDisplayCell
             .filter { [weak self] _, indexPath in
                 let items = self?.dataSource.sectionModels.first?.items ?? []
-                return indexPath.section == 0 && indexPath.row == items.count - 1
+                let isLast = indexPath.section == 0 && indexPath.row == items.count - 1
+                print("책 번호:", indexPath, ", 마지막 셀?:", isLast)
+                return isLast
             }
             .map { _ in () }
 
@@ -252,7 +254,7 @@ final class SearchViewController: UIViewController {
         )
 
         let output = viewModel.transform(input)
-        
+
         // RxDataSources로 테이블뷰 바인딩
         output.books
             .map { books in

@@ -10,7 +10,7 @@ import Foundation
 import RxSwift
 
 protocol BookServicing {
-    func searchBooks(query: String, page: Int) -> Observable<[BookItem]>
+    func searchBooks(query: String, page: Int) -> Observable<BookSearchResponse>
 }
 
 final class BookService: BookServicing {
@@ -22,14 +22,14 @@ final class BookService: BookServicing {
     private let apiKey = "536e08fd6cae2a372119d07eb9bee824"
     private let baseURL = "https://dapi.kakao.com/v3/search/book"
 
-    func searchBooks(query: String, page: Int) -> Observable<[BookItem]> {
+    func searchBooks(query: String, page: Int) -> Observable<BookSearchResponse> {
         return Observable.create { observer in
             let headers: HTTPHeaders = ["Authorization": "KakaoAK \(self.apiKey)"]
             let parameters: Parameters = [
                 "query": query,
                 "page": page,
                 "size": BookService.pageSize
-                ]
+            ]
             let request = AF.request(
                 self.baseURL,
                 parameters: parameters,
@@ -40,7 +40,7 @@ final class BookService: BookServicing {
                 switch resp.result {
                 case .success(let data):
                     let items = data.documents.map(BookItem.init)
-                    observer.onNext(items)
+                    observer.onNext(data)
                 case .failure(let err):
                     observer.onError(err)
                 }
