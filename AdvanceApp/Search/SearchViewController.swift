@@ -47,6 +47,13 @@ final class SearchViewController: UIViewController {
         $0.textColor = .label
     }
 
+    private let recentToggleButton = UIButton(type: .system).then {
+        $0.setTitle("접기", for: .normal)
+        $0.titleLabel?.font = .systemFont(ofSize: 14)
+    }
+
+    private var isRecentHidden = false
+
     private let recentBooksRelay = BehaviorRelay<[BookItem]>(value: [])
     private let recentCollectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout().then {
@@ -94,7 +101,15 @@ final class SearchViewController: UIViewController {
 
         recentCollectionView.contentInset = .init(top: 0, left: 20, bottom: 0, right: 20)
 
+        recentToggleButton.addTarget(self,
+                                     action: #selector(toggleRecentSection),
+                                     for: .touchUpInside)
+
         setupLayout()
+
+        view.bringSubviewToFront(recentTitleLabel)
+        view.bringSubviewToFront(recentToggleButton)
+
         bindBanner()
         bindRecent()
         bindViewModel()
@@ -119,7 +134,7 @@ final class SearchViewController: UIViewController {
     // MARK: - Layout
 
     private func setupLayout() {
-        [searchBar, bannerScrollView, recentTitleLabel, recentCollectionView, tableView]
+        [searchBar, bannerScrollView, recentTitleLabel, recentToggleButton, recentCollectionView, tableView]
             .forEach { view.addSubview($0) }
 
         bannerScrollView.addSubview(bannerStackView)
@@ -144,6 +159,11 @@ final class SearchViewController: UIViewController {
         recentTitleLabel.snp.makeConstraints {
             $0.top.equalTo(bannerScrollView.snp.bottom).offset(16)
             $0.leading.equalToSuperview().inset(20)
+        }
+
+        recentToggleButton.snp.makeConstraints {
+            $0.centerY.equalTo(recentTitleLabel)
+            $0.trailing.equalToSuperview().inset(20)
         }
 
         recentCollectionView.snp.makeConstraints {
@@ -241,6 +261,30 @@ final class SearchViewController: UIViewController {
                 self.present(nav, animated: true)
             })
             .disposed(by: disposeBag)
+    }
+
+    @objc private func toggleRecentSection() {
+        isRecentHidden.toggle()
+        // 버튼 타이틀 교체
+        let title = isRecentHidden ? "펼치기" : "접기"
+        recentToggleButton.setTitle(title, for: .normal)
+
+        // 컬렉션뷰 숨김
+        recentCollectionView.isHidden = isRecentHidden
+
+        // 테이블뷰 제약 재설정
+        tableView.snp.remakeConstraints {
+            let topAnchor = isRecentHidden
+                ? recentTitleLabel.snp.bottom
+                : recentCollectionView.snp.bottom
+            $0.top.equalTo(topAnchor).offset(16)
+            $0.leading.trailing.bottom.equalTo(view.safeAreaLayoutGuide)
+        }
+
+        // 애니메이션으로 레이아웃 반영
+        UIView.animate(withDuration: 0.25) {
+            self.view.layoutIfNeeded()
+        }
     }
 }
 
