@@ -36,16 +36,45 @@ final class SearchViewModel: SearchViewModeling {
     }
 
     func transform(_ input: SearchInput) -> SearchOutput {
-        let books = input.queryText
+        input.queryText
             .debounce(.milliseconds(300), scheduler: MainScheduler.instance)
             .distinctUntilChanged()
             .filter { !$0.isEmpty }
-            .flatMapLatest { [service] text in
-                service.searchBooks(query: text)
+            .do(onNext: { q in
+                self.currentQuery = q
+                self.currentPage = 1
+                self.isEnd = false
+                self.items.accept([])
+            })
+            .flatMapLatest { q in
+                self.service.searchBooks(query: q, page: self.currentPage)
                     .catchAndReturn([])
             }
-            .asDriver(onErrorJustReturn: [])
+            .subscribe(onNext: { list in
+                self.items.accept(list)
+                self.isEnd = list.count < BookService.pageSize
+            })
+            .disposed(by: disposeBag)
 
-        return SearchOutput(books: books)
+        // 2) 마지막 셀 표시될 때마다 다음 페이지 로드
+        input.loadNextPage
+            .filter { !self.isEnd }
+            .throttle(.milliseconds(500), scheduler: MainScheduler.instance)
+            .flatMapLatest { _ -> Observable<[BookItem]> in
+                self.currentPage += 1
+                return self.service.searchBooks(query: self.currentQuery,
+                                                page: self.currentPage)
+                .catchAndReturn([])
+            }
+            .subscribe(onNext: { more in
+                self.items.accept(self.items.value + more)
+                self.isEnd = more.count < BookService.pageSize
+            })
+            .disposed(by: disposeBag)
+
+        // 3) 최종 Output
+        return SearchOutput(
+            books: items.asDriver(onErrorDriveWith: .empty())
+        )
     }
 }

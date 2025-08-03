@@ -237,11 +237,22 @@ final class SearchViewController: UIViewController {
     // MARK: - ViewModel Binding
 
     private func bindViewModel() {
-        let input = SearchInput(
-            queryText: searchBar.rx.text.orEmpty.asObservable()
-        )
-        let output = viewModel.transform(input)
+        let query = searchBar.rx.text.orEmpty.asObservable()
 
+        let loadNextPage = tableView.rx.willDisplayCell
+            .filter { [weak self] _, indexPath in
+                let items = self?.dataSource.sectionModels.first?.items ?? []
+                return indexPath.section == 0 && indexPath.row == items.count - 1
+            }
+            .map { _ in () }
+
+        let input = SearchInput(
+            queryText: query,
+            loadNextPage: loadNextPage
+        )
+
+        let output = viewModel.transform(input)
+        
         // RxDataSources로 테이블뷰 바인딩
         output.books
             .map { books in
