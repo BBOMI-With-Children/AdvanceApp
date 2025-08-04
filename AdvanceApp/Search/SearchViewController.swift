@@ -268,9 +268,6 @@ final class SearchViewController: UIViewController {
             .subscribe(onNext: { [weak self] item in
                 guard let self = self else { return }
 
-                // 1) CoreData에 저장
-                SavedBookManager.shared.save(item)
-
                 // 2) 클릭된 항목을 맨 앞에
                 var recents = self.recentBooksRelay.value
                 recents.removeAll { $0.title == item.title }
