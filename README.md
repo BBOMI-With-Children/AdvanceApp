@@ -116,3 +116,6 @@ AdvanceApp/
 ```
 
 ---
+
+검색 페이지 -> 상세 페이지 -> 담은 책 페이지
+<img width="979" height="170" alt="스크린샷 2025-08-04 오후 5 28 48" src="https://github.com/user-attachments/assets/a633cab0-5d58-4a74-ba67-6a8a88d0351d" />
