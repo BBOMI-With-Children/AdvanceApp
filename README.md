@@ -117,5 +117,9 @@ AdvanceApp/
 
 ---
 
+![Simulator Screen Recording - iPhone 16 Pro - 2025-08-04 at 17 48 03](https://github.com/user-attachments/assets/4b2bd4a7-45d8-4501-9ecd-9a77e2c8c375)|![Simulator Screen Recording - iPhone 16 Pro - 2025-08-04 at 17 48 45](https://github.com/user-attachments/assets/17612b91-a0db-44b3-adef-ac9734f643e2)
+---|---|
+
+
 검색 페이지 -> 상세 페이지 -> 담은 책 페이지
 <img width="979" height="170" alt="스크린샷 2025-08-04 오후 5 28 48" src="https://github.com/user-attachments/assets/a633cab0-5d58-4a74-ba67-6a8a88d0351d" />
