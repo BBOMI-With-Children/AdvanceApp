@@ -148,7 +148,15 @@ final class BookDetailViewController: UIViewController {
         } else {
             // 중복이 아닐 때
             SavedBookManager.shared.save(book)
-            dismiss(animated: true)
+            let successAlert = UIAlertController(
+                title: "완료",
+                message: "책이 성공적으로 담겼습니다.",
+                preferredStyle: .alert
+            )
+            successAlert.addAction(.init(title: "확인", style: .default) { _ in
+                self.dismiss(animated: true)
+            })
+            present(successAlert, animated: true)
         }
     }
 
